@@ -257,6 +257,10 @@
     word-break: break-all;
   }
   .keybox-hint { margin-top: 12px; clear: both; }
+  .lizard {
+    display: inline-block;
+    filter: grayscale(1) brightness(2.4) contrast(0.7);
+  }
   .copy-btn {
     display: block;
     margin: 10px 0 0 auto;
@@ -1069,7 +1073,7 @@
       <div class="card">
         <h3><span class="tag">🔑</span><span data-i18n="homeKeyboxTitle">KÓD KRABIČKY NA KĽÚČE</span></h3>
         <div class="wifi-value" id="keyboxCode">1234</div>
-        <p class="muted keybox-hint" data-i18n="homeKeyboxHint">Krabička na kľúče sa nachádza na vstupnej kovovej bránke a je označená jašteričkou 🦎</p>
+        <p class="muted keybox-hint" data-i18n="homeKeyboxHint">Krabička na kľúče sa nachádza na vstupnej kovovej bránke a je označená jašteričkou <span class="lizard">🦎</span></p>
       </div>
 
     </section>
@@ -1554,7 +1558,7 @@
       homeCheckinTitle: "UBYTOVANIE",
       homeCheckinText: "Ubytovanie je možné od 15:00. Kľúče nájdete v krabičke na kľúče na vstupnej kovovej bránke. Prajeme Vám príjemný pobyt.",
       homeKeyboxTitle: "KÓD KRABIČKY NA KĽÚČE",
-      homeKeyboxHint: "Krabička na kľúče sa nachádza na vstupnej kovovej bránke a je označená jašteričkou 🦎",
+      homeKeyboxHint: "Krabička na kľúče sa nachádza na vstupnej kovovej bránke a je označená jašteričkou <span class=\"lizard\">🦎</span>",
       wifiTitle: "WiFi pripojenie",
       wifiSub: "Bezdrôtová sieť pre hostí",
       wifiSsidLabel: "NÁZOV SIETE",
@@ -1643,7 +1647,7 @@
       homeCheckinTitle: "CHECK-IN",
       homeCheckinText: "Check-in is from 3:00 PM. The keys are in the key box on the entrance metal gate. We wish you a pleasant stay.",
       homeKeyboxTitle: "KEY BOX CODE",
-      homeKeyboxHint: "The key box is located on the entrance metal gate, marked with a small lizard 🦎",
+      homeKeyboxHint: "The key box is located on the entrance metal gate, marked with a small lizard <span class=\"lizard\">🦎</span>",
       wifiTitle: "WiFi Connection",
       wifiSub: "Wireless network for guests",
       wifiSsidLabel: "NETWORK NAME",
