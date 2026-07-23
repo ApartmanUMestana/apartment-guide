@@ -553,6 +553,10 @@
     font-size: 20px;
     flex-shrink: 0;
   }
+  .contact-row .c-text {
+    min-width: 0;
+    flex: 1;
+  }
   .contact-row .c-text .c-label {
     font-size: 10px;
     color: var(--gold);
@@ -564,6 +568,12 @@
     font-weight: 400;
     color: var(--cream);
     margin-top: 2px;
+    overflow-wrap: anywhere;
+  }
+  /* Long email addresses shrink a touch so they fit on one line where possible */
+  .contact-row .c-text .c-value.c-value-email {
+    font-size: 15px;
+    letter-spacing: -0.2px;
   }
 
   /* Hamburger button in header */
@@ -1248,7 +1258,7 @@
           <div class="c-icon">✉️</div>
           <div class="c-text">
             <div class="c-label" data-i18n="contactEmail">EMAIL</div>
-            <div class="c-value">apartmanumestana@gmail.com</div>
+            <div class="c-value c-value-email">apartmanumestana@gmail.com</div>
           </div>
         </a>
       </div>
