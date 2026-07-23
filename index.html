@@ -1125,13 +1125,13 @@
 
       <div class="card">
         <h3><span data-i18n="wifiSsidLabel">NÁZOV SIETE</span></h3>
-        <div class="wifi-value" id="wifiSsid">UMestana_Guest</div>
+        <div class="wifi-value" id="wifiSsid">apartman7</div>
         <button class="copy-btn" data-copy="wifiSsid" data-i18n="copy">KOPÍROVAŤ</button>
       </div>
 
       <div class="card">
         <h3><span data-i18n="wifiPassLabel">HESLO</span></h3>
-        <div class="wifi-value" id="wifiPass">mestan2024</div>
+        <div class="wifi-value" id="wifiPass">mestan007</div>
         <button class="copy-btn" data-copy="wifiPass" data-i18n="copy">KOPÍROVAŤ</button>
       </div>
 
@@ -1357,15 +1357,15 @@
 <script>
 (function () {
   const DEFAULT_PIN = "1302";
-  const DEFAULT_WIFI_SSID = "UMestana_Guest";
-  const DEFAULT_WIFI_PASS = "mestan2024";
+  const DEFAULT_WIFI_SSID = "apartman7";
+  const DEFAULT_WIFI_PASS = "mestan007";
   const DEFAULT_KEYBOX = "1302";
   const ADMIN_PIN = "1964";
   const LONG_PRESS_MS = 1500;
 
   // Bump this version when you want all admin-stored values to reset on next
   // load (e.g. after deploying new defaults). Leave it alone for regular updates.
-  const APP_VERSION = "1.2.0";
+  const APP_VERSION = "1.3.0";
   const STORED_KEYS = ["guestPin", "wifiSsid", "wifiPass", "keyboxCode"];
 
   function clearStoredSettings() {
