@@ -382,7 +382,6 @@
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-radius: 6px;
-    padding: 18px;
     margin-bottom: 14px;
     box-shadow: var(--shadow);
     border-left: 3px solid var(--gold);
@@ -390,14 +389,34 @@
     transition: border-color 0.2s, background 0.2s;
     -webkit-user-select: none;
     user-select: none;
+    overflow: hidden;
   }
   .tip-card:active { background: var(--surface-2); }
   .tip-card.expanded { border-left-color: var(--gold-bright); }
+
+  /* Always-visible cover photo */
+  .tip-photo-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .tip-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .tip-card.expanded .tip-photo { transform: scale(1.04); }
+
+  .tip-inner { padding: 15px 18px 17px; }
+
   .tip-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    align-items: flex-start;
     gap: 10px;
   }
   .tip-card .label {
@@ -419,45 +438,56 @@
     transition: transform 0.3s ease;
     flex-shrink: 0;
     opacity: 0.7;
+    margin-top: 3px;
   }
   .tip-card.expanded .tip-toggle { transform: rotate(180deg); opacity: 1; }
   .tip-card h3 {
-    font-size: 18px;
+    font-size: 19px;
     color: var(--cream);
-    margin-bottom: 6px;
+    margin-top: 10px;
     font-weight: 400;
     font-style: italic;
+    letter-spacing: 0.3px;
   }
-  .tip-card p { font-size: 14px; color: var(--cream-dim); }
-  .tip-card .meta {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 10px;
-    padding-top: 10px;
+  .tip-subtitle {
+    font-size: 14px;
+    color: var(--gold-dim);
+    font-style: italic;
+    margin-top: 4px;
+  }
+  .tip-subtitle:empty { display: none; }
+
+  /* Read-more hint (hidden once expanded) */
+  .tip-more {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 12px;
+    font-family: "Georgia", serif;
+    opacity: 0.85;
+  }
+  .tip-card.expanded .tip-more { display: none; }
+
+  /* Collapsible full text — grid-rows trick animates variable height without clipping */
+  .tip-fulltext-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.45s ease;
+  }
+  .tip-card.expanded .tip-fulltext-wrap { grid-template-rows: 1fr; }
+  .tip-fulltext { overflow: hidden; min-height: 0; }
+  .tip-fulltext-inner {
+    padding-top: 13px;
+    margin-top: 13px;
     border-top: 1px solid var(--border-soft);
-    letter-spacing: 0.5px;
   }
-  .tip-image-wrap {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease, margin-top 0.3s ease, opacity 0.4s ease;
-    margin-top: 0;
-    opacity: 0;
+  .tip-fulltext-inner p {
+    font-size: 15px;
+    color: var(--cream-dim);
+    line-height: 1.65;
   }
-  .tip-card.expanded .tip-image-wrap {
-    max-height: 500px;
-    margin-top: 14px;
-    opacity: 1;
-  }
-  .tip-image {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    display: block;
-    border-radius: 4px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-  }
+  .tip-fulltext-inner p + p { margin-top: 12px; }
 
   /* Parking spot cards */
   .parking-card {
@@ -1354,100 +1384,273 @@
 
   // ==========================================================================
   // TIPS — edit this list to add / remove / reorder / change tips.
-  // Each tip has: img (path, optional), category/name/desc/meta per language.
+  // Each tip has:
+  //   img       — cover photo path (optional), shown on the collapsed card
+  //   category  — short type label { sk, en }
+  //   name      — tip title { sk, en }
+  //   subtitle  — one-line italic subtitle { sk, en } (optional)
+  //   body      — full text shown when expanded: an ARRAY of paragraphs
+  //               per language { sk: [...], en: [...] }. HTML like <strong>
+  //               is allowed inside a paragraph.
   // Use { divider: true } to insert an ornamental separator between tips.
   // ==========================================================================
   const TIPS = [
     {
-      img: "tips/trojice.jpg",
-      category: { sk: "Pamiatka", en: "Landmark" },
-      name: { sk: "Námestie sv. Trojice", en: "Holy Trinity Square" },
-      desc: {
-        sk: "Srdce historického mesta s barokovým morovým stĺpom — hlavné námestie zapísané v UNESCO.",
-        en: "The heart of the historic town with its Baroque plague column — the main UNESCO-listed square."
+      img: "tips/Staryzamok1.jpg",
+      category: { sk: "Hrad", en: "Castle" },
+      name: { sk: "Starý zámok", en: "Old Castle" },
+      subtitle: {
+        sk: "Kamenná kronika Banskej Štiavnice",
+        en: "The stone chronicle of Banská Štiavnica"
       },
-      meta: { sk: "📍 2 min chôdze", en: "📍 2 min walk" }
+      body: {
+        sk: [
+          "Starý zámok patrí medzi najcennejšie historické pamiatky Banskej Štiavnice a právom sa označuje ako „kamenná kronika mesta“. Jeho dejiny siahajú až do 13. storočia, keď na tomto mieste stála románska Bazilika Panny Márie spolu s kaplnkou sv. Michala. Postupným rozširovaním opevnenia sa z kostola stal mestský hrad, ktorý chránil obyvateľov aj bohatstvo miestnych baní.",
+          "Najväčšou premenou prešiel v 16. storočí počas tureckého nebezpečenstva. Pôvodný chrám bol prestavaný na pevnosť, pribudli obranné múry, bašty a strážne veže. Práve vďaka tejto nezvyčajnej prestavbe dnes návštevníci vidia unikátne spojenie sakrálnej architektúry a vojenského opevnenia, ktoré patrí na Slovensku k ojedinelým príkladom.",
+          "Starý zámok je výnimočný aj tým, že na jeho budovách možno sledovať vývoj architektúry od románskeho obdobia cez gotiku, renesanciu až po baroko. Každé storočie tu zanechalo svoju stopu, a preto je považovaný za jedinečnú „učebnicu stavebných slohov“.",
+          "Dnes v areáli sídli Slovenské banské múzeum. Medzi najzaujímavejšie expozície patrí archeologická výstava „Baníci prichádzajú“, historická kováčska dielňa, zbierka streleckých terčov a zbraní, expozícia hodín či autentická mučiareň. Veľkú pozornosť púta aj kaplnka sv. Michala so vzácnymi stredovekými freskami.",
+          "Počas leta sa nádvorie Starého zámku mení na dejisko koncertov, divadelných predstavení a kultúrnych podujatí. Vďaka svojej atmosfére patrí k najobľúbenejším miestam v historickom centre mesta a ponúka návštevníkom jedinečný pohľad do viac než 700 rokov bohatej histórie Banskej Štiavnice."
+        ],
+        en: [
+          "The Old Castle is one of the most precious historical monuments of Banská Štiavnica and is rightly called the town’s “stone chronicle”. Its history reaches back to the 13th century, when a Romanesque Basilica of the Virgin Mary stood here together with the Chapel of St. Michael. As the fortifications were gradually expanded, the church grew into a town castle that protected both the townspeople and the wealth of the local mines.",
+          "Its greatest transformation came in the 16th century, during the Turkish threat. The original church was rebuilt into a fortress, gaining defensive walls, bastions and watchtowers. Thanks to this unusual conversion, visitors today see a unique blend of sacred architecture and military fortification — one of the rarest examples of its kind in Slovakia.",
+          "The Old Castle is also remarkable in that its buildings trace the evolution of architecture from the Romanesque period through Gothic and Renaissance to Baroque. Every century left its mark here, which is why it is regarded as a unique “textbook of architectural styles”.",
+          "Today the complex is home to the Slovak Mining Museum. Among its most interesting exhibitions are the archaeological display “The Miners Are Coming”, a historic blacksmith’s workshop, a collection of shooting targets and weapons, an exhibition of clocks, and an authentic torture chamber. The Chapel of St. Michael, with its rare medieval frescoes, also draws great attention.",
+          "In summer, the courtyard of the Old Castle becomes a stage for concerts, theatre performances and cultural events. Thanks to its atmosphere, it is one of the most beloved places in the historic town centre, offering visitors a unique glimpse into more than 700 years of the rich history of Banská Štiavnica."
+        ]
+      }
     },
     {
-      img: "tips/kalvaria.jpg",
-      category: { sk: "UNESCO", en: "UNESCO" },
-      name: { sk: "Kalvária", en: "Calvary" },
-      desc: {
-        sk: "Baroková Kalvária z 18. storočia — považovaná za najkrajšiu v strednej Európe. Nezabudnuteľné výhľady na celé mesto.",
-        en: "An 18th-century Baroque Calvary, considered the finest in Central Europe. Unforgettable views of the town."
-      },
-      meta: { sk: "📍 25 min chôdze · cca 5 min autom", en: "📍 25 min walk · 5 min by car" }
-    },
-    {
-      img: "tips/novy-zamok.jpg",
+      img: "tips/Novyzamok1.jpg",
       category: { sk: "Hrad", en: "Castle" },
       name: { sk: "Nový zámok", en: "New Castle" },
-      desc: {
-        sk: "Biela strážna veža zo 16. storočia. Z vyhliadkovej plošiny dovidíte po celú Štiavnicu a okolité kopce.",
-        en: "A white 16th-century watchtower. Climb to the top for sweeping views of Štiavnica and the surrounding hills."
+      subtitle: {
+        sk: "Strážca nad mestom",
+        en: "The guardian above the town"
       },
-      meta: { sk: "📍 12 min chôdze · stúpanie", en: "📍 12 min walk · uphill" }
+      body: {
+        sk: [
+          "Nový zámok patrí k najvýraznejším symbolom Banskej Štiavnice. Renesančnú pevnosť postavili v rokoch 1564 až 1571 na vrchu Frauenberg ako súčasť obranného systému proti tureckým vpádom. Hoci nesie názov „zámok“, nikdy neslúžil ako šľachtické sídlo – bol predovšetkým strážnou a obrannou vežou, z ktorej vojaci sledovali okolie a chránili bohaté banské mesto.",
+          "Stavba má charakteristický tvar mohutnej šesťpodlažnej veže so štyrmi nárožnými baštami. Vďaka svojej polohe patrila do signalizačnej siete stredoslovenských banských miest. Pri hrozbe útoku sa odtiaľto šírili varovné signály do ďalších pevností a miest. Zaujímavosťou je, že po skončení tureckého nebezpečenstva slúžil Nový zámok aj ako „živé hodiny“ – každú štvrťhodinu sa z veže ozýval zvuk trúbky, ktorý oznamoval presný čas obyvateľom mesta.",
+          "Dnes je v Novom zámku umiestnená expozícia Slovenského banského múzea venovaná obdobiu protitureckých bojov. Návštevníci tu môžu vidieť historické zbrane, vojenskú výstroj, strelecké terče či predmety pripomínajúce každodenný život obrancov mesta. Medzi najvzácnejšie exponáty patrí sedemhlavňové delo zo 16. storočia a originálne turecké zbrane.",
+          "Najväčšou odmenou za výstup na najvyššie poschodie je jedinečný panoramatický výhľad na historické centrum Banskej Štiavnice, okolité vrchy a banské pamiatky. Práve odtiaľ si návštevník najlepšie uvedomí, prečo bol Nový zámok po stáročia jedným z najdôležitejších strážcov mesta."
+        ],
+        en: [
+          "The New Castle is one of the most striking symbols of Banská Štiavnica. This Renaissance fortress was built between 1564 and 1571 on Frauenberg Hill as part of the defensive system against Turkish raids. Although it is called a “castle”, it never served as a noble residence — it was above all a watch-and-defence tower, from which soldiers surveyed the surroundings and guarded the wealthy mining town.",
+          "The building has the distinctive shape of a massive six-storey tower with four corner bastions. Thanks to its position, it belonged to the signalling network of the Central Slovak mining towns. When an attack threatened, warning signals were relayed from here to other fortresses and towns. Interestingly, once the Turkish danger had passed, the New Castle also served as a “living clock” — every quarter of an hour a trumpet sounded from the tower, announcing the exact time to the townspeople.",
+          "Today the New Castle houses an exhibition of the Slovak Mining Museum devoted to the era of the anti-Turkish wars. Visitors can see historic weapons, military equipment, shooting targets, and objects recalling the everyday life of the town’s defenders. Among the most valuable exhibits are a seven-barrelled cannon from the 16th century and original Turkish weapons.",
+          "The greatest reward for climbing to the top floor is the unique panoramic view over the historic centre of Banská Štiavnica, the surrounding hills and the mining monuments. It is from here that a visitor best understands why, for centuries, the New Castle was one of the town’s most important guardians."
+        ]
+      }
     },
     {
-      img: "tips/banske-muzeum.jpg",
-      category: { sk: "Múzeum", en: "Museum" },
-      name: { sk: "Slovenské banské múzeum", en: "Slovak Mining Museum" },
-      desc: {
-        sk: "Expozícia o stáročnej histórii baníctva. Možnosť zostúpiť do autentickej štôlne — zážitok pre celú rodinu.",
-        en: "Centuries of mining history, with the chance to descend into an authentic mine shaft — a family favorite."
+      img: "tips/Trojicne1.jpg",
+      category: { sk: "Námestie", en: "Square" },
+      name: { sk: "Trojičné námestie", en: "Holy Trinity Square" },
+      subtitle: {
+        sk: "Srdce historickej Banskej Štiavnice",
+        en: "The heart of historic Banská Štiavnica"
       },
-      meta: { sk: "📍 8 min chôdze", en: "📍 8 min walk" }
+      body: {
+        sk: [
+          "Trojičné námestie je hlavným a najživším námestím Banskej Štiavnice. Už od stredoveku tvorilo centrum spoločenského, obchodného aj administratívneho života mesta. Vďaka bohatstvu získanému z ťažby zlata a striebra tu vyrástli honosné meštianske domy, paláce a významné verejné budovy, ktoré dodnes vytvárajú jedinečnú atmosféru historického jadra zapísaného v zozname svetového dedičstva UNESCO.",
+          "Dominantou námestia je monumentálny Morový stĺp Najsvätejšej Trojice, ktorý bol postavený v rokoch 1710 až 1711 ako poďakovanie za ukončenie morovej epidémie. Takmer 19 metrov vysoké barokové dielo patrí medzi najkrajšie svojho druhu na Slovensku. Bohatá sochárska výzdoba zobrazuje svätcov, anjelov a výjavy spojené s ochranou mesta pred chorobami a nešťastiami.",
+          "Námestie obklopujú historické budovy, medzi ktorými vyniká radnica, Berggericht – bývalý banský súd a sídlo banskej správy, ako aj viaceré meštianske domy patriace kedysi najbohatším obchodníkom a majiteľom baní. Fasády domov odrážajú architektonické štýly od gotiky cez renesanciu až po baroko, čo robí z námestia jedinečnú prehliadku dejín architektúry na jednom mieste.",
+          "Po stáročia sa tu konali trhy, slávnosti, verejné zhromaždenia aj významné mestské udalosti. Aj dnes zostáva Trojičné námestie prirodzeným centrom mesta, kde sa stretávajú obyvatelia aj návštevníci. Počas roka sa tu konajú kultúrne podujatia, koncerty, jarmoky a tradičné Salamandrové dni, ktoré pripomínajú slávnu banícku minulosť Štiavnice."
+        ],
+        en: [
+          "Holy Trinity Square (Trojičné námestie) is the main and liveliest square of Banská Štiavnica. Since the Middle Ages it has formed the centre of the town’s social, commercial and administrative life. Thanks to the wealth gained from gold and silver mining, grand burgher houses, palaces and important public buildings rose here, and to this day they create the unique atmosphere of the historic core inscribed on the UNESCO World Heritage List.",
+          "The square is dominated by the monumental Plague Column of the Holy Trinity, built between 1710 and 1711 in thanksgiving for the end of a plague epidemic. Almost 19 metres tall, this Baroque work is among the finest of its kind in Slovakia. Its rich sculptural decoration depicts saints, angels and scenes connected with protecting the town from disease and misfortune.",
+          "The square is surrounded by historic buildings, among which the town hall stands out, along with the Berggericht — the former mining court and seat of the mining administration — and several burgher houses that once belonged to the wealthiest merchants and mine owners. Their façades reflect architectural styles from Gothic through Renaissance to Baroque, making the square a unique tour through the history of architecture in a single place.",
+          "For centuries, markets, festivities, public gatherings and important civic events were held here. Even today, Holy Trinity Square remains the natural centre of the town, where residents and visitors meet. Throughout the year it hosts cultural events, concerts, fairs and the traditional Salamander Days, which recall Štiavnica’s glorious mining past."
+        ]
+      }
     },
     {
-      img: "tips/pivovar-erb.jpg",
-      category: { sk: "Reštaurácia", en: "Restaurant" },
-      name: { sk: "Pivovar Erb", en: "Erb Brewery" },
-      desc: {
-        sk: "Remeselný pivovar s reštauráciou priamo v centre. Tradičné slovenské jedlá a vlastné pivo.",
-        en: "Craft brewery and restaurant right in the center. Traditional Slovak cuisine paired with house-brewed beer."
+      img: "tips/Morovystlp1.jpg",
+      category: { sk: "Pamiatka", en: "Landmark" },
+      name: { sk: "Morový stĺp Najsvätejšej Trojice", en: "The Holy Trinity Plague Column" },
+      subtitle: {
+        sk: "Symbol vďačnosti a viery",
+        en: "A symbol of gratitude and faith"
       },
-      meta: { sk: "📍 5 min chôdze · €€", en: "📍 5 min walk · €€" }
+      body: {
+        sk: [
+          "Dominantou Trojičného námestia je monumentálny Morový stĺp Najsvätejšej Trojice, ktorý je jedným z najkrajších barokových pamiatok na Slovensku. Bol postavený začiatkom 18. storočia ako poďakovanie za skončenie morovej epidémie, ktorá zasiahla mesto.",
+          "Takmer devätnásť metrov vysoký stĺp zdobia desiatky sôch svätcov, anjelov a náboženských symbolov. Bohatá výzdoba patrí k vrcholným dielam barokového sochárstva na území Slovenska.",
+          "Po stáročia bol stĺp miestom náboženských slávností, procesií a významných mestských udalostí. Dodnes tvorí prirodzené centrum historickej Banskej Štiavnice."
+        ],
+        en: [
+          "The dominant feature of Holy Trinity Square is the monumental Plague Column of the Holy Trinity, one of the most beautiful Baroque monuments in Slovakia. It was erected at the beginning of the 18th century in thanksgiving for the end of the plague epidemic that had struck the town.",
+          "Almost nineteen metres tall, the column is adorned with dozens of statues of saints, angels and religious symbols. Its rich decoration ranks among the finest works of Baroque sculpture in Slovakia.",
+          "For centuries the column was the setting for religious celebrations, processions and important civic events. To this day it forms the natural centre of historic Banská Štiavnica."
+        ]
+      }
     },
     {
-      img: "tips/tajch-klinger.jpg",
+      img: "tips/Trotuar1.jpg",
+      category: { sk: "Promenáda", en: "Promenade" },
+      name: { sk: "Trotuár", en: "The Trotuár" },
+      subtitle: {
+        sk: "Hlas baníckej Štiavnice",
+        en: "The voice of mining Štiavnica"
+      },
+      body: {
+        sk: [
+          "Trotuár patrí medzi najcharakteristickejšie miesta Banskej Štiavnice a už viac ako storočie je obľúbeným miestom prechádzok domácich aj návštevníkov. Nachádza sa na dnešnej ulici Andreja Kmeťa a jeho názov pochádza z francúzskeho slova trottoir, čo znamená chodník. Štiavnický trotuár je však výnimočný – ide o približne 140 metrov dlhý vyvýšený chodník, ktorý vedie popri hlavnej ulici historického centra.",
+          "V časoch najväčšej slávy bol trotuár spoločenským centrom mesta. Miestni obyvatelia sem chodievali na podvečerné prechádzky, študenti slávnej Baníckej akadémie sa tu stretávali s dievčatami a mešťania tu diskutovali o dianí v meste. Preto sa mu často hovorilo aj „štiavnické korzo“.",
+          "Po celej dĺžke trotuáru stoja historické meštianske domy, obchodíky, galérie, kaviarne a reštaurácie. Práve tu možno najlepšie zažiť jedinečnú atmosféru Banskej Štiavnice – mesta úzkych uličiek, schodísk a romantických zákutí. Prechádzka trotuárom patrí k najobľúbenejším aktivitám návštevníkov a je neoddeliteľnou súčasťou objavovania historického centra.",
+          "Na začiatku ulice stojí socha významného vedca, kňaza a národovca Andreja Kmeťa, po ktorom je ulica pomenovaná. V dolnej časti sa nachádza socha legendárneho štiavnického Nácka – dobromyseľného mestského originála, ktorý sa stal jednou zo symbolických postáv mesta.",
+          "Dnes je trotuár miestom, kde sa história prirodzene spája so súčasným životom. Počas celého roka tu pulzuje život, no najmä v letných mesiacoch sa mení na živú promenádu plnú hudby, umenia a príjemnej atmosféry."
+        ],
+        en: [
+          "The Trotuár is one of the most distinctive spots in Banská Štiavnica and, for more than a century, a favourite place for a stroll among locals and visitors alike. It runs along today’s Andrej Kmeť Street, and its name comes from the French word trottoir, meaning pavement. The Štiavnica trotuár is exceptional, however — an elevated walkway roughly 140 metres long that runs alongside the main street of the historic centre.",
+          "In its heyday, the trotuár was the social heart of the town. Locals came here for evening strolls, students of the famous Mining Academy met girls here, and townsfolk discussed the latest goings-on. That is why it was often called the “Štiavnica corso”.",
+          "Along its entire length stand historic burgher houses, small shops, galleries, cafés and restaurants. This is where you can best experience the unique atmosphere of Banská Štiavnica — a town of narrow lanes, staircases and romantic corners. A walk along the trotuár is one of visitors’ favourite activities and an inseparable part of discovering the historic centre.",
+          "At the top of the street stands a statue of the notable scientist, priest and patriot Andrej Kmeť, after whom the street is named. In its lower part stands a statue of the legendary Štiavnica “Nácko” — a good-natured local character who became one of the town’s symbolic figures.",
+          "Today the trotuár is a place where history naturally blends with contemporary life. It bustles all year round, but especially in the summer months it turns into a lively promenade full of music, art and a pleasant atmosphere."
+        ]
+      }
+    },
+    {
+      img: "tips/Botanicka1.jpg",
       category: { sk: "Príroda", en: "Nature" },
-      name: { sk: "Tajch Klinger", en: "Klinger Reservoir" },
-      desc: {
-        sk: "Historická banská vodná nádrž — v lete obľúbené miesto na kúpanie, celoročne skvelé na prechádzky.",
-        en: "A historic mining reservoir — a beloved spot for summer swimming and year-round nature walks."
+      name: { sk: "Botanická záhrada", en: "The Botanical Garden" },
+      subtitle: {
+        sk: "Zelený poklad Banskej Štiavnice",
+        en: "The green treasure of Banská Štiavnica"
       },
-      meta: { sk: "📍 20 min chôdze · kúpanie v lete", en: "📍 20 min walk · swimming in summer" }
-    },
-    { divider: true },
-    {
-      img: "tips/svaty-anton.jpg",
-      category: { sk: "Výlet", en: "Day trip" },
-      name: { sk: "Kaštieľ Svätý Anton", en: "Svätý Anton Manor" },
-      desc: {
-        sk: "Nádherný barokovo-klasicistický kaštieľ v obci Svätý Anton. Múzeum, rozľahlé záhrady a poľovnícke expozície — ideálny na polodenný výlet.",
-        en: "A beautiful Baroque-Classicist manor in the village of Svätý Anton. Museum, expansive gardens, and hunting exhibitions — ideal for a half-day trip."
-      },
-      meta: { sk: "📍 10 min autom · 5 km", en: "📍 10 min by car · 5 km" }
-    },
-    {
-      img: "tips/pocuvadlo.jpg",
-      category: { sk: "Výlet", en: "Day trip" },
-      name: { sk: "Tajch Počúvadlo", en: "Počúvadlo Reservoir" },
-      desc: {
-        sk: "Najväčšie zo štiavnických banských jazier. Kúpanie, bicyklovanie okolo vody a viaceré reštaurácie priamo na brehu.",
-        en: "The largest of the Štiavnica mining lakes. Swimming, cycling around the water, and several lakeside restaurants."
-      },
-      meta: { sk: "📍 15 min autom · 7 km", en: "📍 15 min by car · 7 km" }
+      body: {
+        sk: [
+          "Botanická záhrada v Banskej Štiavnici sa radí medzi najstaršie a najvzácnejšie botanické záhrady na Slovensku. Nachádza sa v areáli bývalej Baníckej a lesníckej akadémie, ktorá bola založená Máriou Teréziou v roku 1762 a považuje sa za prvú vysokú školu lesníckeho a banského zamerania svojho druhu na svete. Samotná botanická záhrada vznikla v 19. storočí ako praktická učebňa pre budúcich lesníkov a odborníkov na hospodárenie s lesmi.",
+          "Jej zakladateľom bol profesor lesníctva Rudolf Feistmantel, ktorý v rokoch 1838 – 1839 začal s výsadbou prvých drevín. Postupne sa záhrada rozrástla na rozlohu približne 3,5 hektára a dnes tu rastie viac ako 200 druhov domácich aj cudzokrajných stromov a kríkov z rôznych častí sveta.",
+          "Najväčšou pýchou záhrady sú majestátne sekvojovce mamutie, ktoré patria medzi najväčšie stromy planéty. Pozornosť návštevníkov púta aj céder libanonský, céder atlantský, kryptoméria japonská či ďalšie vzácne dreviny, ktoré sa podarilo úspešne aklimatizovať v podmienkach Štiavnických vrchov. Mnohé z nich boli vysadené už v 19. storočí a dodnes patria k najvzácnejším exemplárom svojho druhu na Slovensku.",
+          "Okrem botanickej hodnoty ponúka záhrada aj príjemné miesto na oddych. Tiché chodníky, historické budovy akadémie a množstvo lavičiek vytvárajú pokojné prostredie len pár minút od rušného centra mesta. Počas prechádzky možno objaviť aj pamätníky významných osobností, ktoré pôsobili na akadémii a podieľali sa na rozvoji lesníctva a baníctva.",
+          "Dnes je záhrada chráneným areálom a patrí k najobľúbenejším miestam na oddych aj fotografovanie. Predstavuje jedinečné spojenie histórie, vzdelávania a prírody, ktoré dokonale dopĺňa atmosféru Banskej Štiavnice."
+        ],
+        en: [
+          "The Botanical Garden in Banská Štiavnica ranks among the oldest and most valuable botanical gardens in Slovakia. It lies within the grounds of the former Academy of Mining and Forestry, founded by Maria Theresa in 1762 and regarded as the first university of mining and forestry of its kind in the world. The garden itself was established in the 19th century as a practical classroom for future foresters and forest-management experts.",
+          "Its founder was the professor of forestry Rudolf Feistmantel, who began planting the first trees in 1838–1839. The garden gradually grew to an area of about 3.5 hectares, and today more than 200 species of native and exotic trees and shrubs from various parts of the world grow here.",
+          "The garden’s greatest pride are the majestic giant sequoias, among the largest trees on the planet. Visitors are also drawn to the Lebanon cedar, Atlas cedar, Japanese cryptomeria and other rare trees that have been successfully acclimatised to the conditions of the Štiavnica Hills. Many were planted as far back as the 19th century and remain among the rarest specimens of their kind in Slovakia.",
+          "Beyond its botanical value, the garden also offers a pleasant place to rest. Quiet paths, the historic academy buildings and plenty of benches create a peaceful setting just a few minutes from the bustling town centre. On a stroll you can also come across memorials to notable figures who worked at the academy and contributed to the development of forestry and mining.",
+          "Today the garden is a protected area and one of the most popular spots for relaxing and photography. It represents a unique blend of history, education and nature that perfectly complements the atmosphere of Banská Štiavnica."
+        ]
+      }
     },
     {
-      img: "tips/sitno.jpg",
-      category: { sk: "Výlet", en: "Day trip" },
-      name: { sk: "Sitno", en: "Sitno" },
-      desc: {
-        sk: "Najvyšší vrch Štiavnických vrchov (1009 m) opradený legendou o spiacich rytieroch. Ľahká túra z Počúvadla (~40 min) s úchvatným výhľadom.",
-        en: "The highest peak of the Štiavnica Hills (1009 m), wrapped in the legend of sleeping knights. An easy hike from Počúvadlo (~40 min) with breathtaking views."
+      img: "tips/Glanzenberg1.jpg",
+      category: { sk: "Baňa", en: "Mine" },
+      name: { sk: "Glanzenberg", en: "Glanzenberg" },
+      subtitle: {
+        sk: "Podzemie priamo v centre mesta",
+        en: "An underground world in the town centre"
       },
-      meta: { sk: "📍 15 min autom + 40 min túra", en: "📍 15 min by car + 40 min hike" }
+      body: {
+        sk: [
+          "Len niekoľko krokov od Trojičného námestia sa nachádza vstup do štôlne Glanzenberg, jednej z najstarších zachovaných baní v Banskej Štiavnici. Návštevníci tu môžu zostúpiť do autentického podzemia a zažiť atmosféru stredovekej bane priamo pod historickým centrom mesta.",
+          "Prehliadková trasa vedie pôvodnými banskými chodbami, v ktorých sa už pred stáročiami ťažili vzácne strieborné rudy. Počas návštevy sa dozviete viac o práci baníkov, spôsoboch dobývania rúd a náročných podmienkach, v akých pracovali.",
+          "Štôlňa je jedinečná tým, že predstavuje skutočné historické banské dielo zachované v pôvodnej podobe. Návšteva je ideálnym doplnkom k prehliadke mesta a Banského múzea v prírode."
+        ],
+        en: [
+          "Just a few steps from Holy Trinity Square lies the entrance to the Glanzenberg adit, one of the oldest preserved mines in Banská Štiavnica. Here visitors can descend into an authentic underground world and experience the atmosphere of a medieval mine right beneath the historic town centre.",
+          "The tour route leads through original mining tunnels where precious silver ores were extracted centuries ago. During the visit you will learn more about the miners’ work, the methods of extracting ore and the demanding conditions in which they laboured.",
+          "The adit is unique in that it is a genuine historic mining work preserved in its original form. A visit is an ideal complement to a tour of the town and the Open-Air Mining Museum."
+        ]
+      }
+    },
+    {
+      img: "tips/Muzeum1.jpg",
+      category: { sk: "Múzeum", en: "Museum" },
+      name: { sk: "Banské múzeum v prírode", en: "The Open-Air Mining Museum" },
+      subtitle: {
+        sk: "Cesta do podzemia štiavnických baní",
+        en: "A journey into the Štiavnica mines"
+      },
+      body: {
+        sk: [
+          "Banské múzeum v prírode je jedným z najväčších lákadiel Banskej Štiavnice a ponúka jedinečnú možnosť zažiť skutočné banské podzemie. Nachádza sa v malebnej doline pod tajchom Klinger a je najstaršou a tematicky najrozsiahlejšou banskou expozíciou na Slovensku. Návštevníkom približuje vývoj ťažby rúd od stredoveku až po 20. storočie a pripomína obdobie, keď patrila Banská Štiavnica medzi najvýznamnejšie banské mestá Európy.",
+          "Najväčším zážitkom je prehliadka originálnych banských diel. Pred vstupom do podzemia dostane každý návštevník banícky plášť, prilbu a lampu, presne tak, ako kedysi baníci. Trasa vedie viac než kilometer dlhými chodbami štôlne Bartolomej a siaha približne 45 metrov pod zemský povrch. Počas prehliadky možno vidieť historické banské nástroje, technické zariadenia aj ukážky spôsobov dobývania strieborných a zlatých rúd v rôznych obdobiach histórie.",
+          "Vonkajšia expozícia predstavuje množstvo unikátnych banských strojov a zariadení. Najvzácnejším exponátom je vodnostĺpcový ťažný stroj z roku 1881, ktorý sa radí medzi významné technické pamiatky európskeho baníctva. Zaujímavá je aj geologická expozícia, približujúca vznik nerastného bohatstva Slovenska a Štiavnických vrchov.",
+          "Múzeum je súčasťou rozsiahlej siete expozícií Slovenské banské múzeum, ktorá dokumentuje históriu baníctva, techniky a života v Banskej Štiavnici. Práve tu si návštevník najlepšie uvedomí, aké náročné bolo získavanie zlata a striebra z hlbín zeme a prečo sa mesto stalo jedným z najbohatších centier vtedajšej Európy."
+        ],
+        en: [
+          "The Open-Air Mining Museum is one of the greatest attractions of Banská Štiavnica and offers a unique chance to experience a real mining underground. It lies in a picturesque valley below the Klinger reservoir and is the oldest and thematically most extensive mining exhibition in Slovakia. It presents the development of ore mining from the Middle Ages to the 20th century and recalls the era when Banská Štiavnica was among the most important mining towns in Europe.",
+          "The greatest experience is the tour of the original mine workings. Before descending underground, every visitor receives a miner’s coat, helmet and lamp, just as the miners once had. The route leads through more than a kilometre of tunnels in the Bartolomej adit and reaches roughly 45 metres below the surface. Along the way you can see historic mining tools, technical equipment and demonstrations of how silver and gold ores were extracted in different periods of history.",
+          "The outdoor exhibition presents a wealth of unique mining machines and equipment. The most precious exhibit is a water-column hoisting engine from 1881, ranked among the important technical monuments of European mining. The geological exhibition, illustrating the origins of the mineral wealth of Slovakia and the Štiavnica Hills, is also of great interest.",
+          "The museum is part of the extensive network of exhibitions of the Slovak Mining Museum, which documents the history of mining, technology and life in Banská Štiavnica. It is here that a visitor best appreciates how demanding it was to win gold and silver from the depths of the earth, and why the town became one of the wealthiest centres of the Europe of its time."
+        ]
+      }
+    },
+    {
+      img: "tips/Kalvaria1.jpg",
+      category: { sk: "Pamiatka", en: "Landmark" },
+      name: { sk: "Kalvária v Banskej Štiavnici", en: "The Banská Štiavnica Calvary" },
+      subtitle: {
+        sk: "Barokový klenot nad mestom",
+        en: "A Baroque jewel above the town"
+      },
+      body: {
+        sk: [
+          "Kalvária v Banskej Štiavnici patrí medzi najkrajšie a najvýznamnejšie barokové kalvárie v Európe. Bola postavená v rokoch 1744 až 1751 na vrchu Scharffenberg (Ostrý vrch) z iniciatívy jezuitského kazateľa pátra Františka Pergera. Celý areál vznikol vďaka finančným príspevkom mešťanov, baníkov a miestnej šľachty, ktorí sa podieľali na budovaní tejto výnimočnej pamiatky.",
+          "Komplex tvorí súbor 23 sakrálnych objektov – kostolov, kaplniek a zastavení krížovej cesty rozmiestnených na svahu vulkanického kopca. Architektúra kalvárie je unikátna tým, že jednotlivé stavby vytvárajú premyslený duchovný a vizuálny celok. Dominantou je Horný kostol na vrchole kopca, odkiaľ sa návštevníkom otvára jeden z najkrajších výhľadov na historické centrum Banskej Štiavnice a okolité Štiavnické vrchy.",
+          "Kalvária nie je len náboženskou pamiatkou, ale aj významným umeleckým dielom. Interiéry kaplniek zdobia vzácne barokové reliéfy a maľby zobrazujúce udalosti z posledných dní života Ježiša Krista. V období svojho vzniku patrila medzi najnáročnejšie stavebné projekty vtedajšieho Uhorska a dodnes predstavuje vrchol barokového umenia na Slovensku.",
+          "Po desaťročiach chátrania prešla Kalvária rozsiahlym procesom obnovy, ktorý získal medzinárodné uznanie. Vďaka rekonštrukcii sa jej podarilo navrátiť pôvodnú krásu a dnes patrí medzi najnavštevovanejšie miesta mesta. Spolu s historickým centrom Banskej Štiavnice je zapísaná v zozname svetového dedičstva UNESCO."
+        ],
+        en: [
+          "The Calvary in Banská Štiavnica is one of the most beautiful and important Baroque calvaries in Europe. It was built between 1744 and 1751 on Scharffenberg Hill (Ostrý vrch) at the initiative of the Jesuit preacher Father František Perger. The whole complex came into being thanks to financial contributions from townspeople, miners and the local nobility, who all took part in creating this exceptional monument.",
+          "The complex consists of a set of 23 sacred structures — churches, chapels and Stations of the Cross arranged along the slope of a volcanic hill. The architecture of the Calvary is unique in that the individual buildings form a carefully conceived spiritual and visual whole. Its dominant feature is the Upper Church at the summit, from which visitors enjoy one of the finest views of the historic centre of Banská Štiavnica and the surrounding Štiavnica Hills.",
+          "The Calvary is not only a religious monument but also a significant work of art. The chapel interiors are adorned with rare Baroque reliefs and paintings depicting events from the last days of the life of Jesus Christ. At the time of its construction it was among the most demanding building projects of the Kingdom of Hungary, and to this day it represents a peak of Baroque art in Slovakia.",
+          "After decades of decay, the Calvary underwent an extensive restoration that earned international recognition. Thanks to the reconstruction, its original beauty was restored, and today it is one of the town’s most visited places. Together with the historic centre of Banská Štiavnica, it is inscribed on the UNESCO World Heritage List."
+        ]
+      }
+    },
+    {
+      img: "tips/Klopacka1.jpg",
+      category: { sk: "Pamiatka", en: "Landmark" },
+      name: { sk: "Klopačka", en: "The Klopačka" },
+      subtitle: {
+        sk: "Hlas baníckej Štiavnice",
+        en: "The voice of mining Štiavnica"
+      },
+      body: {
+        sk: [
+          "Klopačka patrí k najznámejším symbolom Banskej Štiavnice a je neodmysliteľne spojená s jej slávnou baníckou minulosťou. Táto nenápadná, no významná stavba bola postavená v roku 1681 na vyvýšenom mieste nad historickým centrom mesta. Jej hlavnou úlohou bolo oznamovať začiatok a koniec pracovných zmien v baniach, ktoré po stáročia živili celé mesto.",
+          "Názov stavby pochádza od dreveného kladiva – „klopačky“, ktorým strážnik udieral do drevenej dosky. Charakteristický zvuk sa niesol dolinou a bolo ho počuť až k vzdialeným banským šachtám. Baníci podľa neho vedeli, kedy majú nastúpiť do práce, ale aj kedy sa končí ich náročná zmena hlboko pod zemou.",
+          "Klopačka slúžila zároveň ako sídlo banskej stráže a menšia väznica pre baníkov, ktorí porušili pracovnú disciplínu. Priestory na prízemí boli určené na zadržiavanie previnilcov, zatiaľ čo horné podlažie slúžilo strážnikom. Táto kombinácia „budíka“ a väzenia robí z Klopačky jednu z najzaujímavejších technických pamiatok svojho druhu v Európe.",
+          "Architektúra stavby je jednoduchá, no veľmi pôsobivá. Dominantou je drevená vežička s otvorenou zvonicou, ktorá sa stala jedným z najfotografovanejších miest v Banskej Štiavnici. Z jej okolia sa návštevníkom naskytá krásny výhľad na historické centrum mesta, Starý zámok aj okolité kopce Štiavnických vrchov.",
+          "Dnes je Klopačka pripomienkou obdobia, keď bola Banská Štiavnica jedným z najvýznamnejších banských miest Európy. Je symbolom každodenného života tisícov baníkov, ktorých práca priniesla mestu bohatstvo a svetovú slávu."
+        ],
+        en: [
+          "The Klopačka is one of the best-known symbols of Banská Štiavnica and is inseparably linked to its glorious mining past. This modest yet significant building was erected in 1681 on a raised site above the historic town centre. Its main purpose was to announce the beginning and end of the work shifts in the mines that sustained the whole town for centuries.",
+          "The building’s name comes from the wooden hammer — the “klopačka” — with which a watchman struck a wooden board. The characteristic sound carried down the valley and could be heard as far as the distant mine shafts. By it, the miners knew when to report for work and when their demanding shift deep underground was over.",
+          "The Klopačka also served as the seat of the mine guard and a small prison for miners who had broken work discipline. The ground-floor rooms were used to detain offenders, while the upper floor housed the guards. This combination of an “alarm clock” and a prison makes the Klopačka one of the most interesting technical monuments of its kind in Europe.",
+          "The building’s architecture is simple yet very striking. Its dominant feature is a wooden turret with an open belfry, which has become one of the most photographed spots in Banská Štiavnica. From its surroundings visitors enjoy a beautiful view of the historic town centre, the Old Castle and the surrounding hills of the Štiavnica range.",
+          "Today the Klopačka is a reminder of the era when Banská Štiavnica was one of the most important mining towns in Europe. It is a symbol of the everyday life of the thousands of miners whose work brought the town wealth and world renown."
+        ]
+      }
+    },
+    {
+      img: "tips/Kammerhof1.jpg",
+      category: { sk: "Múzeum", en: "Museum" },
+      name: { sk: "Kammerhof", en: "The Kammerhof" },
+      subtitle: {
+        sk: "Srdce štiavnického baníctva",
+        en: "The heart of Štiavnica mining"
+      },
+      body: {
+        sk: [
+          "Kammerhof patrí medzi významné historické budovy Banskej Štiavnice a je považovaný za najcennejší svetský pamiatkový objekt mesta. Jeho názov pochádza z nemeckého slova Kammerhof – Komorský dom. Už od 16. storočia tu sídlil Hlavný komorskogrófsky úrad, ktorý riadil baníctvo v celej stredoslovenskej banskej oblasti. Práve odtiaľto sa spravovali bane produkujúce zlato a striebro, ktoré preslávili Banskú Štiavnicu po celej Európe.",
+          "Rozsiahly komplex vznikal postupne spájaním viacerých starších budov. V priebehu stáročí bol prestavovaný, rozširovaný a prispôsobovaný potrebám banskej správy. V časoch najväčšej slávy pracovali v jeho priestoroch úradníci, odborníci a správcovia, ktorí rozhodovali o fungovaní jedného z najbohatších banských regiónov vtedajšieho Uhorska.",
+          "Dnes je Kammerhof hlavným sídlom Slovenského banského múzea. Nachádza sa tu najrozsiahlejšia expozícia venovaná dejinám baníctva na Slovensku. Návštevníci môžu vidieť historické banské mapy, lampy, meracie prístroje, modely strojov, ukážky banskej techniky aj vzácne dokumenty približujúce život baníkov a vývoj ťažby od stredoveku až po 20. storočie.",
+          "Kammerhof je ideálnym miestom na pochopenie príbehu Banskej Štiavnice. Kým Starý a Nový zámok rozprávajú o obrane mesta a tajchy o technickej genialite jeho obyvateľov, Kammerhof vysvetľuje, ako celý banícky systém fungoval a prečo sa Štiavnica stala jedným z najvýraznejších miest Európy."
+        ],
+        en: [
+          "The Kammerhof is one of the important historic buildings of Banská Štiavnica and is considered the town’s most valuable secular monument. Its name comes from the German word Kammerhof — “Chamber Court”. From as early as the 16th century it was the seat of the Chief Chamber-Count’s Office, which governed mining across the entire Central Slovak mining region. It was from here that the mines producing the gold and silver that made Banská Štiavnica famous throughout Europe were administered.",
+          "The extensive complex grew gradually by joining several older buildings. Over the centuries it was rebuilt, enlarged and adapted to the needs of the mining administration. In its heyday, its rooms were home to officials, experts and administrators who decided the running of one of the wealthiest mining regions of the Kingdom of Hungary of the time.",
+          "Today the Kammerhof is the main seat of the Slovak Mining Museum. It houses the most extensive exhibition devoted to the history of mining in Slovakia. Visitors can see historic mining maps, lamps, measuring instruments, models of machines, demonstrations of mining technology and rare documents illustrating the life of the miners and the development of mining from the Middle Ages to the 20th century.",
+          "The Kammerhof is the ideal place to understand the story of Banská Štiavnica. While the Old and New Castles tell of the town’s defence and the tajchy (reservoirs) of the technical genius of its inhabitants, the Kammerhof explains how the whole mining system worked and why Štiavnica became one of the most remarkable towns in Europe."
+        ]
+      }
     }
   ];
 
@@ -1583,6 +1786,7 @@
       ratingText: "Ak ste boli so svojím pobytom spokojní, úctivo Vás prosíme o pozitívne hodnotenie. Ďakujeme!",
       tipsTitle: "Tipy z okolia",
       tipsSub: "Najkrajšie miesta Banskej Štiavnice",
+      tipReadMore: "Čítať viac",
       navTransport: "Doprava",
       transportTitle: "Doprava & parkovanie",
       transportSub: "Ako sa k nám dostanete",
@@ -1672,6 +1876,7 @@
       ratingText: "If you were satisfied with your stay, we respectfully ask for a positive rating. Thank you!",
       tipsTitle: "Local Tips",
       tipsSub: "The finest of Banská Štiavnica",
+      tipReadMore: "Read more",
       navTransport: "Transport",
       transportTitle: "Transport & Parking",
       transportSub: "How to reach us",
@@ -1828,6 +2033,23 @@
       card.className = "tip-card";
       if (tip.img) card.dataset.img = tip.img;
 
+      // Cover photo (always visible on the collapsed card)
+      if (tip.img) {
+        const pw = document.createElement("div");
+        pw.className = "tip-photo-wrap";
+        const img = document.createElement("img");
+        img.className = "tip-photo";
+        img.alt = "";
+        img.loading = "lazy";
+        img.src = tip.img;
+        img.addEventListener("error", () => { pw.style.display = "none"; });
+        pw.appendChild(img);
+        card.appendChild(pw);
+      }
+
+      const inner = document.createElement("div");
+      inner.className = "tip-inner";
+
       const header = document.createElement("div");
       header.className = "tip-header";
       const label = document.createElement("span");
@@ -1842,33 +2064,34 @@
 
       const h3 = document.createElement("h3");
       h3.dataset.tipField = i + ":name";
-      const p = document.createElement("p");
-      p.dataset.tipField = i + ":desc";
-      const meta = document.createElement("div");
-      meta.className = "meta";
-      meta.dataset.tipField = i + ":meta";
 
-      card.appendChild(header);
-      card.appendChild(h3);
-      card.appendChild(p);
-      card.appendChild(meta);
+      const sub = document.createElement("p");
+      sub.className = "tip-subtitle";
+      sub.dataset.tipField = i + ":subtitle";
 
-      let img = null, wrap = null;
-      if (tip.img) {
-        wrap = document.createElement("div");
-        wrap.className = "tip-image-wrap";
-        img = document.createElement("img");
-        img.className = "tip-image";
-        img.alt = "";
-        img.loading = "lazy";
-        img.addEventListener("error", () => { wrap.style.display = "none"; });
-        wrap.appendChild(img);
-        card.appendChild(wrap);
-      }
+      const more = document.createElement("div");
+      more.className = "tip-more";
+      more.dataset.i18n = "tipReadMore";
+      more.textContent = I18N[currentLang].tipReadMore;
+
+      const ftWrap = document.createElement("div");
+      ftWrap.className = "tip-fulltext-wrap";
+      const ft = document.createElement("div");
+      ft.className = "tip-fulltext";
+      const ftInner = document.createElement("div");
+      ftInner.className = "tip-fulltext-inner";
+      ftInner.dataset.tipBody = String(i);
+      ft.appendChild(ftInner);
+      ftWrap.appendChild(ft);
+
+      inner.appendChild(header);
+      inner.appendChild(h3);
+      inner.appendChild(sub);
+      inner.appendChild(more);
+      inner.appendChild(ftWrap);
+      card.appendChild(inner);
 
       card.addEventListener("click", () => {
-        const willExpand = !card.classList.contains("expanded");
-        if (willExpand && img && tip.img && !img.src) img.src = tip.img;
         card.classList.toggle("expanded");
       });
 
@@ -1884,6 +2107,19 @@
       if (tip && tip[field] && tip[field][currentLang] != null) {
         el.textContent = tip[field][currentLang];
       }
+    });
+    // Render the multi-paragraph body for the current language
+    document.querySelectorAll("[data-tip-body]").forEach(el => {
+      const tip = TIPS[+el.dataset.tipBody];
+      if (!tip || !tip.body) return;
+      const paras = tip.body[currentLang];
+      el.innerHTML = "";
+      const list = Array.isArray(paras) ? paras : (paras != null ? [paras] : []);
+      list.forEach(txt => {
+        const p = document.createElement("p");
+        p.innerHTML = txt;
+        el.appendChild(p);
+      });
     });
   }
 
