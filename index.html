@@ -1072,7 +1072,7 @@
 
       <div class="card">
         <h3><span class="tag">🔑</span><span data-i18n="homeKeyboxTitle">KÓD KRABIČKY NA KĽÚČE</span></h3>
-        <div class="wifi-value" id="keyboxCode">1234</div>
+        <div class="wifi-value" id="keyboxCode">1302</div>
         <p class="muted keybox-hint" data-i18n="homeKeyboxHint">Krabička na kľúče sa nachádza na vstupnej kovovej bránke a je označená jašteričkou <span class="lizard">🦎</span></p>
       </div>
 
@@ -1260,7 +1260,7 @@
     <div class="lock-name">Apartmán u Mešťana</div>
     <div class="lock-ornament">❦ ❦ ❦</div>
     <h2 class="lock-title" data-i18n="lockTitle">Zadajte PIN</h2>
-    <p class="lock-desc" data-i18n="lockDesc">Tento apartmán je chránený PIN kódom, ktorý ste dostali pri ubytovaní.</p>
+    <p class="lock-desc" data-i18n="lockDesc">Tento apartmán je chránený PIN kódom, použite kód pre otvorenie krabičky na kľúče.</p>
     <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="pin-input" id="lockPin" autocomplete="off" />
     <div class="error-msg" id="lockError"></div>
     <button class="lock-submit" id="lockSubmit" data-i18n="lockSubmit">Odomknúť</button>
@@ -1326,16 +1326,16 @@
 
 <script>
 (function () {
-  const DEFAULT_PIN = "1234";
+  const DEFAULT_PIN = "1302";
   const DEFAULT_WIFI_SSID = "UMestana_Guest";
   const DEFAULT_WIFI_PASS = "mestan2024";
-  const DEFAULT_KEYBOX = "1234";
+  const DEFAULT_KEYBOX = "1302";
   const ADMIN_PIN = "1964";
   const LONG_PRESS_MS = 1500;
 
   // Bump this version when you want all admin-stored values to reset on next
   // load (e.g. after deploying new defaults). Leave it alone for regular updates.
-  const APP_VERSION = "1.0.0";
+  const APP_VERSION = "1.1.0";
   const STORED_KEYS = ["guestPin", "wifiSsid", "wifiPass", "keyboxCode"];
 
   function clearStoredSettings() {
@@ -1618,7 +1618,7 @@
       gallerySub: "Pozrite si náš apartmán",
       galleryEmpty: "Fotografie budú čoskoro doplnené.",
       lockTitle: "Zadajte PIN",
-      lockDesc: "Tento apartmán je chránený PIN kódom, ktorý ste dostali pri ubytovaní.",
+      lockDesc: "Tento apartmán je chránený PIN kódom, použite kód pre otvorenie krabičky na kľúče.",
       lockSubmit: "Odomknúť",
       lockError: "Nesprávny PIN, skúste to prosím znova.",
       adminTitle: "Správa apartmánu",
@@ -1707,7 +1707,7 @@
       gallerySub: "Take a look at our apartment",
       galleryEmpty: "Photos will be added soon.",
       lockTitle: "Enter PIN",
-      lockDesc: "This apartment is protected with the PIN code you received at check-in.",
+      lockDesc: "This apartment is protected with a PIN code — use the code for opening the key box.",
       lockSubmit: "Unlock",
       lockError: "Incorrect PIN, please try again.",
       adminTitle: "Apartment Administration",
