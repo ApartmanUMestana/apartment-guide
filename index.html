@@ -1335,7 +1335,7 @@
 
   // Bump this version when you want all admin-stored values to reset on next
   // load (e.g. after deploying new defaults). Leave it alone for regular updates.
-  const APP_VERSION = "1.1.0";
+  const APP_VERSION = "1.2.0";
   const STORED_KEYS = ["guestPin", "wifiSsid", "wifiPass", "keyboxCode"];
 
   function clearStoredSettings() {
@@ -1344,9 +1344,10 @@
   (function versionCheck() {
     try {
       const stored = localStorage.getItem("appVersion");
-      // Only wipe if a version was previously recorded AND it differs.
-      // On first introduction of versioning, respect existing settings.
-      if (stored && stored !== APP_VERSION) clearStoredSettings();
+      // Wipe stored overrides whenever the recorded version differs from the
+      // current one (including the case where no version was recorded yet),
+      // so bumping APP_VERSION reliably resets the guest PIN and other values.
+      if (stored !== APP_VERSION) clearStoredSettings();
       localStorage.setItem("appVersion", APP_VERSION);
     } catch {}
   })();
